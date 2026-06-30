@@ -1,0 +1,6 @@
+{
+  "name": "DASHTU SUPD II",
+  "description": "Dashboard Tata Usaha Terpadu SUPD II - Streamlit Prototype",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
