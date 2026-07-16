@@ -38,8 +38,8 @@ async def create_dokumentasi(
     c = conn.cursor()
     try:
         c.execute('''
-            INSERT INTO dokumentasi (id, judul_kegiatan, tanggal_kegiatan, lokasi, kategori, file_path, uploader)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO dokumentasi (id, judul_kegiatan, tanggal_kegiatan, lokasi, kategori, file_path, uploader, is_visible)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         ''', (file_id, judul_kegiatan, tanggal_kegiatan, lokasi, kategori, db_file_path, uploader))
         conn.commit()
     except Exception as e:
@@ -78,6 +78,22 @@ def update_dokumentasi(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "Dokumentasi berhasil diupdate"}
+
+@router.put("/{dok_id}/visibility")
+def toggle_visibility(
+    dok_id: str,
+    is_visible: int = Form(...),
+    conn: sqlite3.Connection = Depends(get_db)
+):
+    c = conn.cursor()
+    try:
+        c.execute("UPDATE dokumentasi SET is_visible=? WHERE id=?", (is_visible, dok_id))
+        if c.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Dokumentasi tidak ditemukan")
+        conn.commit()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"message": "Visibilitas berhasil diubah"}
 
 @router.delete("/{dok_id}")
 def delete_dokumentasi(dok_id: str, conn: sqlite3.Connection = Depends(get_db)):

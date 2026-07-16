@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './TVDisplay.css';
-import { LayoutDashboard, Mail, Calendar, FileText, CheckSquare, Image as ImageIcon } from 'lucide-react';
+import { LayoutDashboard, Mail, Calendar, FileText, CheckSquare, Image as ImageIcon, Monitor } from 'lucide-react';
 
 const API_URL = '/api';
 
@@ -17,12 +17,66 @@ export default function TVDisplay() {
   const [agenda, setAgenda] = useState<any[]>([]);
   const [tindakLanjut, setTindakLanjut] = useState<any[]>([]);
   const [dokumentasi, setDokumentasi] = useState<any[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [themeMode, setThemeMode] = useState<"classic" | "gallery">("gallery");
+  const [activeAgendaIdx, setActiveAgendaIdx] = useState(0);
+  const [activeTlIdx, setActiveTlIdx] = useState(0);
 
   // Clock effect
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Carousel effect
+  useEffect(() => {
+    if (dokumentasi.length > 0) {
+      const carouselTimer = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % dokumentasi.length);
+      }, 5000);
+      return () => clearInterval(carouselTimer);
+    }
+  }, [dokumentasi.length]);
+
+  const agendaRef = useRef(agenda);
+  const tlRef = useRef(tindakLanjut);
+
+  useEffect(() => {
+    agendaRef.current = agenda;
+    tlRef.current = tindakLanjut;
+  }, [agenda, tindakLanjut]);
+
+  // Vertical ticker effect
+  useEffect(() => {
+    const agendaInterval = setInterval(() => {
+      setActiveAgendaIdx(prev => {
+        const len = agendaRef.current.length;
+        return len > 0 ? (prev + 1) % len : 0;
+      });
+    }, 15000);
+    
+    let tlInterval: NodeJS.Timeout;
+    const timeout = setTimeout(() => {
+      // Trigger an immediate change after 5 seconds so they are visibly out of sync
+      setActiveTlIdx(prev => {
+        const len = tlRef.current.length;
+        return len > 0 ? (prev + 1) % len : 0;
+      });
+      
+      tlInterval = setInterval(() => {
+        setActiveTlIdx(prev => {
+          const len = tlRef.current.length;
+          return len > 0 ? (prev + 1) % len : 0;
+        });
+      }, 15000);
+    }, 5000);
+
+    return () => {
+      clearInterval(agendaInterval);
+      clearTimeout(timeout);
+      if (tlInterval) clearInterval(tlInterval);
+    };
+  }, []); // Empty deps so it never resets when data comes in
 
   // Fetch data effect
   useEffect(() => {
@@ -44,22 +98,22 @@ export default function TVDisplay() {
         const resAgenda = await fetch(`${API_URL}/agenda`);
         if (resAgenda.ok) {
           const data = await resAgenda.json();
-          // Sort by time and take top 5
-          setAgenda(data.slice(0, 5));
+          setAgenda(data);
         }
 
         // Fetch tindak lanjut
         const resTl = await fetch(`${API_URL}/tindak_lanjut`);
         if (resTl.ok) {
           const data = await resTl.json();
-          setTindakLanjut(data.slice(0, 6));
+          setTindakLanjut(data);
         }
 
         // Fetch dokumentasi
         const resDoc = await fetch(`${API_URL}/dokumentasi`);
         if (resDoc.ok) {
           const data = await resDoc.json();
-          setDokumentasi(data.slice(0, 4));
+          const visibleData = data.filter((d: any) => d.is_visible !== 0);
+          setDokumentasi(visibleData);
         }
 
       } catch (err) {
@@ -97,7 +151,15 @@ export default function TVDisplay() {
     return 'BELUM';
   };
 
-  return (
+  const runningTextAgenda = agenda.length > 0
+    ? agenda.map(a => `${a.waktu_mulai || ''} ${a.judul_acara || ''} di ${a.lokasi || ''}`).join(' • ')
+    : 'Belum ada agenda hari ini.';
+
+  const runningTextTl = tindakLanjut.length > 0
+    ? tindakLanjut.filter(t => t.status !== 'selesai').map(t => `${t.tindakan} (Batas Waktu: ${t.batas_waktu})`).join(' | ') || 'Semua tindak lanjut telah diselesaikan.'
+    : 'Belum ada tindak lanjut.';
+
+  const renderClassic = () => (
     <div className="tv-dashboard-body">
       <div className="tv-board">
         
@@ -308,5 +370,129 @@ export default function TVDisplay() {
 
       </div>
     </div>
+  );
+
+  const renderGallery = () => (
+    <div className="tv-dashboard-body tv-gallery-mode">
+      
+      {/* Background Image (blurred version of current image) */}
+      {dokumentasi.length > 0 && (
+        <div 
+          className="tv-bg-blur" 
+          style={{backgroundImage: `url(${dokumentasi[currentImageIndex].file_path})`}} 
+        />
+      )}
+      
+      <div className="tv-overlay-gradient" />
+
+      <div className="tv-board-gallery">
+        
+        {/* ================= HEADER ================= */}
+        <header className="tv-header-gallery">
+          <div className="tv-header-left">
+            <img src="/assets/logo-kemendagri.png" alt="Logo Kemendagri" />
+            <div className="titles">
+              <h2>KEMENTERIAN DALAM NEGERI</h2>
+              <p>DITJEN BINA PEMBANGUNAN DAERAH</p>
+            </div>
+          </div>
+
+          <div className="tv-header-mid">
+            <h1>DASHTU SUPD II</h1>
+            <div className="sub1">DASHBOARD TATA USAHA TERPADU</div>
+          </div>
+
+          <div className="tv-header-time">
+            <div className="date">{dateStr}</div>
+            <div className="clock">{timeStr} WIB</div>
+          </div>
+        </header>
+
+        {/* ================= MAIN CAROUSEL ================= */}
+        <section className="tv-main-carousel">
+          {dokumentasi.length > 0 ? (
+            <div className="tv-carousel-container">
+              <div className="tv-carousel-img-wrapper" key={`img-${currentImageIndex}`}>
+                <img 
+                  src={`${dokumentasi[currentImageIndex].file_path}`} 
+                  alt={dokumentasi[currentImageIndex].judul_kegiatan} 
+                  className="tv-carousel-img"
+                />
+              </div>
+              <div className="tv-carousel-caption" key={`cap-${currentImageIndex}`}>
+                <span className="tv-kategori-badge">{dokumentasi[currentImageIndex].kategori}</span>
+                <h2>{dokumentasi[currentImageIndex].judul_kegiatan}</h2>
+                <p>📍 {dokumentasi[currentImageIndex].lokasi} &nbsp;&nbsp; 📅 {dokumentasi[currentImageIndex].tanggal_kegiatan}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="tv-no-doc">
+              <ImageIcon size={64} opacity={0.5} />
+              <p>Belum ada dokumentasi tersedia.</p>
+            </div>
+          )}
+        </section>
+
+        {/* ================= METRICS OVERLAY ================= */}
+        <section className="tv-metrics-glass">
+          <div className="tv-glass-stat">
+            <div className="tv-gnum">{metrics.total_surat}</div>
+            <div className="tv-glabel">Surat Masuk/Keluar</div>
+          </div>
+          <div className="tv-glass-stat">
+            <div className="tv-gnum">{metrics.total_agenda}</div>
+            <div className="tv-glabel">Agenda Kegiatan</div>
+          </div>
+          <div className="tv-glass-stat">
+            <div className="tv-gnum">{metrics.total_laporan}</div>
+            <div className="tv-glabel">Dokumen Laporan</div>
+          </div>
+          <div className="tv-glass-stat">
+            <div className="tv-gnum" style={{color: '#f87171'}}>{metrics.tindak_lanjut_pending}</div>
+            <div className="tv-glabel">Tindak Lanjut Pending</div>
+          </div>
+        </section>
+
+        {/* ================= VERTICAL TICKER FOOTER ================= */}
+        <footer className="tv-footer-running">
+          <div className="tv-running-label agenda-label">AGENDA HARI INI</div>
+          <div className="tv-running-content">
+            <div className="tv-vertical-ticker" key={`agenda-${activeAgendaIdx}`}>
+              {agenda.length > 0 
+                ? `${agenda[activeAgendaIdx].waktu_mulai || ''} ${agenda[activeAgendaIdx].judul_acara || ''} di ${agenda[activeAgendaIdx].lokasi || ''}`
+                : 'Belum ada agenda hari ini.'
+              }
+            </div>
+          </div>
+        </footer>
+        
+        <footer className="tv-footer-running">
+          <div className="tv-running-label tl-label">TINDAK LANJUT</div>
+          <div className="tv-running-content">
+            <div className="tv-vertical-ticker" key={`tl-${activeTlIdx}`}>
+              {tindakLanjut.length > 0 
+                ? `${tindakLanjut[activeTlIdx].tindakan} (Batas Waktu: ${tindakLanjut[activeTlIdx].batas_waktu || '-'})`
+                : 'Belum ada tindak lanjut.'
+              }
+            </div>
+          </div>
+        </footer>
+
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {themeMode === 'classic' ? renderClassic() : renderGallery()}
+      
+      <button 
+        onClick={() => setThemeMode(prev => prev === 'classic' ? 'gallery' : 'classic')}
+        className="tv-theme-toggle"
+        title="Ganti Tema Dashboard"
+      >
+        <Monitor size={20} />
+      </button>
+    </>
   );
 }

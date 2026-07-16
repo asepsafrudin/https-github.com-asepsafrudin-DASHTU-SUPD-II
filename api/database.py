@@ -4,7 +4,7 @@ from typing import Iterator
 DB_NAME = "dashtu_supd2.db"
 
 def get_db_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_NAME)
+    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 

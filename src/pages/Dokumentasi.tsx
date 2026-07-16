@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter, Image as ImageIcon, MapPin, Calendar, User, Download } from 'lucide-react';
+import { Plus, Search, Filter, Image as ImageIcon, MapPin, Calendar, User, Download, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale/id';
@@ -13,6 +13,7 @@ interface DokumentasiItem {
   kategori: string;
   file_path: string;
   uploader: string;
+  is_visible: number;
 }
 
 export default function Dokumentasi() {
@@ -20,6 +21,9 @@ export default function Dokumentasi() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterKategori, setFilterKategori] = useState('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const user = JSON.parse(localStorage.getItem('dashtu_user') || '{}');
+  const isSuperAdmin = user.role === 'admin' || user.role === 'superadmin';
 
   useEffect(() => {
     fetchDoks();
@@ -31,6 +35,18 @@ export default function Dokumentasi() {
       setDoks(res.data);
     } catch (error) {
       console.error("Gagal mengambil data dokumentasi", error);
+    }
+  };
+
+  const toggleVisibility = async (id: string, currentVisible: number) => {
+    try {
+      const data = new FormData();
+      data.append('is_visible', currentVisible === 1 ? '0' : '1');
+      await axios.put(`/api/dokumentasi/${id}/visibility`, data);
+      fetchDoks();
+    } catch (error) {
+      console.error("Gagal mengubah visibilitas", error);
+      alert("Gagal mengubah visibilitas foto.");
     }
   };
 
@@ -112,28 +128,44 @@ export default function Dokumentasi() {
                 <img 
                   src={`${dok.file_path}`} 
                   alt={dok.judul_kegiatan}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${dok.is_visible === 0 ? 'opacity-40 grayscale' : ''}`}
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
                 
                 {/* Overlay Badges */}
-                <div className="absolute top-3 left-3">
-                  <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-lg text-xs font-medium text-white border border-white/10">
+                <div className="absolute top-3 left-3 flex flex-col gap-2">
+                  <span className="px-2.5 py-1 bg-black/60 backdrop-blur-md rounded-lg text-xs font-medium text-white border border-white/10 w-fit">
                     {dok.kategori}
                   </span>
+                  {dok.is_visible === 0 && (
+                    <span className="px-2.5 py-1 bg-rose-500/80 backdrop-blur-md rounded-lg text-xs font-medium text-white border border-rose-400/20 w-fit flex items-center gap-1">
+                      <EyeOff size={12} /> Disembunyikan
+                    </span>
+                  )}
                 </div>
                 
-                {/* Download Button Overlay */}
-                <a 
-                  href={`${dok.file_path}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="absolute top-3 right-3 p-2 bg-black/60 hover:bg-pink-600 backdrop-blur-md rounded-lg text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"
-                  title="Unduh HD"
-                >
-                  <Download size={16} />
-                </a>
+                {/* Actions Overlay */}
+                <div className="absolute top-3 right-3 flex flex-col gap-2">
+                  {isSuperAdmin && (
+                    <button
+                      onClick={() => toggleVisibility(dok.id, dok.is_visible)}
+                      className="p-2 bg-black/60 hover:bg-slate-700 backdrop-blur-md rounded-lg text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"
+                      title={dok.is_visible === 1 ? "Sembunyikan dari TV" : "Tampilkan di TV"}
+                    >
+                      {dok.is_visible === 1 ? <Eye size={16} className="text-sky-400" /> : <EyeOff size={16} className="text-rose-400" />}
+                    </button>
+                  )}
+                  <a 
+                    href={`${dok.file_path}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="p-2 bg-black/60 hover:bg-pink-600 backdrop-blur-md rounded-lg text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"
+                    title="Unduh HD"
+                  >
+                    <Download size={16} />
+                  </a>
+                </div>
               </div>
               
               {/* Content */}
