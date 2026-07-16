@@ -1,6 +1,10 @@
 # DASHTU SUPD II (Dashboard Tata Usaha Terpadu SUPD II)
 
-Prototipe aplikasi web interaktif menggunakan Python dan Streamlit untuk manajemen dokumen, kegiatan, laporan, dan tindak lanjut di lingkungan SUPD II.
+> **Catatan Arsitektur Baru**: Repositori ini sedang bertransisi dari aplikasi tunggal **Streamlit** menuju arsitektur modern menggunakan **React + Vite** (Frontend) dan **FastAPI** (Backend). 
+> Kode Streamlit versi purwarupa sebelumnya telah dipindahkan ke dalam folder `legacy/`.
+> Panduan di bawah ini mungkin sebagian besar masih merujuk pada versi Streamlit. Untuk menjalankan versi baru, gunakan `npm run dev` untuk frontend, dan `uvicorn api.main:app --reload` untuk backend.
+
+Prototipe aplikasi web interaktif untuk manajemen dokumen, kegiatan, laporan, dan tindak lanjut di lingkungan SUPD II.
 
 ## Prasyarat
 - Python 3.10 atau lebih baru.
@@ -9,34 +13,49 @@ Prototipe aplikasi web interaktif menggunakan Python dan Streamlit untuk manajem
 ## Langkah Instalasi & Persiapan
 
 1. **Persiapkan Folder**
-   Pastikan Anda berada di direktori proyek yang berisi file `app.py`, `seed_data.py`, dan `requirements.txt`.
+   Pastikan Anda berada di direktori proyek `DASHTU-SUPD-II`.
    
    ```bash
    cd path/to/project_folder
    ```
 
 2. **Instalasi Dependensi**
-   Jalankan perintah berikut untuk menginstal semua library Python yang dibutuhkan (seperti Streamlit dan Pandas):
+   Instal dependensi untuk frontend (React) dan backend (FastAPI):
    
    ```bash
+   # Frontend
+   npm install
+
+   # Backend
    pip install -r requirements.txt
    ```
 
-3. **Inisialisasi & Seeding Data (Mock Data)**
-   Sebelum menjalankan aplikasi utama, jalankan skrip seeding data untuk mengisi database `dashtu_supd2.db` dengan data simulasi (surat, kegiatan, laporan, agenda, tindak lanjut). Hal ini penting agar dashboard dapat menampilkan visualisasi grafik dan metrik saat pertama kali dibuka.
-   
+3. **Inisialisasi & Seeding Data**
+   Jalankan script untuk mengisi database SQLite bawaan:
    ```bash
    python seed_data.py
    ```
 
-4. **Menjalankan Aplikasi**
-   Setelah data berhasil dimasukkan, jalankan aplikasi Streamlit dengan perintah:
+4. **Konfigurasi Environment**
+   Buat atau modifikasi file `.env` dan pastikan memuat kredensial Supabase (jika ingin fitur sinkronisasi):
+   ```env
+   SUPABASE_URL="..."
+   SUPABASE_SERVICE_ROLE_KEY="..."
+   ```
+
+5. **Menjalankan Aplikasi**
+   Jalankan backend dan frontend secara terpisah:
    
    ```bash
-   streamlit run app.py
+   # Terminal 1: Backend
+   bash start_api.sh
+   # atau: uvicorn api.main:app --reload
+   
+   # Terminal 2: Frontend
+   npm run dev
    ```
    
-   Perintah ini akan membuka tab browser baru dengan URL lokal (biasanya `http://localhost:8501`).
+   Frontend akan berjalan di `http://localhost:3000` atau `http://localhost:5173`.
 
 ## Panduan Pengujian (Login)
 Database akan otomatis terisi dengan 5 akun default untuk diuji coba. Gunakan email dan password berikut untuk login berdasarkan role yang diinginkan:
@@ -58,8 +77,11 @@ Database akan otomatis terisi dengan 5 akun default untuk diuji coba. Gunakan em
   - Password: `viewer123`
 
 ## Struktur Direktori
-- `app.py`: File utama aplikasi Streamlit (mencakup UI, logika, dan autentikasi).
+- `api/main.py`: File utama backend FastAPI.
+- `src/`: Direktori utama frontend React (Pages, Components).
+- `api/sync_supabase.py`: Skrip untuk sinkronisasi SQLite ke Supabase.
 - `seed_data.py`: Skrip untuk memasukkan data simulasi (seeding).
-- `requirements.txt`: Daftar pustaka yang dibutuhkan.
-- `uploads/`: Direktori yang dibuat otomatis untuk menyimpan file yang diunggah (surat, paparan, dll).
-- `dashtu_supd2.db`: File database SQLite lokal (terbuat secara otomatis).
+- `requirements.txt` & `package.json`: Daftar pustaka Python dan Node.js.
+- `uploads/`: Direktori penyimpanan file lokal.
+- `dashtu_supd2.db`: File database SQLite lokal.
+- `docs/`: Direktori dokumentasi proyek (Source of Truth untuk AI Agent).

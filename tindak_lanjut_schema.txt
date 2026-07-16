@@ -1,0 +1,5 @@
+tindak_lanjut:
+[(0, 'id', 'TEXT', 0, None, 1), (1, 'surat_id', 'TEXT', 0, None, 0), (2, 'kegiatan_id', 'TEXT', 0, None, 0), (3, 'tindakan', 'TEXT', 1, None, 0), (4, 'prioritas', 'TEXT', 0, None, 0), (5, 'batas_waktu', 'TEXT', 0, None, 0), (6, 'status', 'TEXT', 0, "'belum'", 0), (7, 'hasil', 'TEXT', 0, None, 0)]
+
+disposisi:
+[(0, 'id', 'TEXT', 0, None, 1), (1, 'surat_id', 'TEXT', 1, None, 0), (2, 'dispo_dari', 'TEXT', 0, None, 0), (3, 'diteruskan_kepada', 'TEXT', 0, None, 0), (4, 'arahan', 'TEXT', 0, None, 0), (5, 'catatan', 'TEXT', 0, None, 0), (6, 'tgl_disposisi', 'TEXT', 0, None, 0), (7, 'created_at', 'DATETIME', 0, 'CURRENT_TIMESTAMP', 0)]

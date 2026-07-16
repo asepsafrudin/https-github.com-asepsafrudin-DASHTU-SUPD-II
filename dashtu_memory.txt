@@ -1,0 +1,6 @@
+ Proses Migrasi Hardcoded Path:                                                                                                                                         +
+ 1. Melakukan Find and Replace untuk mengubah path /home/aseps/MCP/DASHTU-SUPD-II menjadi /home/aseps/MCP/workspace/DASHTU-SUPD-II.                                     +
+ 2. File yang diubah: fix_schema.py, start_api.sh, import_csv.py, migrate_dispo.py, import_dispo.py.                                                                    +
+ 3. Karena DASHTU-SUPD-II menggunakan bash script (start_api.sh) dan bukan systemd service, tidak perlu melakukan reload daemon systemctl.                              +
+ 4. Pola migrasi yang sama juga sebelumnya berhasil diterapkan pada korespondensi-server (di mana systemd service perlu disalin ke /etc/systemd/system/ dan di-restart).
+

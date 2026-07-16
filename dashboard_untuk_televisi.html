@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DASHTU SUPD II — Dashboard Tata Usaha Terpadu</title>
+<style>
+  :root{
+    --navy-deep:#0b1f4d;
+    --navy:#12296b;
+    --navy-light:#1c3a8a;
+    --blue:#1e5fbf;
+    --blue-light:#2f7fe0;
+    --purple:#5b2ea6;
+    --green:#0e8a5f;
+    --orange:#e08a1a;
+    --teal:#0e8a8a;
+    --gold:#f2b705;
+    --ink:#0b1f4d;
+    --muted:#5b6b8c;
+    --bg:#eef1f8;
+    --card:#ffffff;
+    --ok:#1c9a5b;
+    --proc:#f2a71b;
+    --wait:#8a93a6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Arial, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  
+  /* ===== SIDEBAR & LAYOUT ===== */
+  .app-container {
+    display: flex;
+    min-height: 100vh;
+  }
+  .sidebar {
+    width: 250px;
+    background: var(--navy-deep);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0;
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  .sidebar-header {
+    padding: 0 24px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 20px;
+  }
+  .sidebar-header h2 { font-size: 15px; margin: 0; color: var(--gold); letter-spacing: 1px; }
+  .menu-list { list-style: none; padding: 0; margin: 0; }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 24px;
+    color: #c7d1ef;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    border-left: 4px solid transparent;
+    transition: all 0.2s ease;
+  }
+  .menu-item:hover, .menu-item.active {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+    border-left-color: var(--gold);
+  }
+  .menu-item svg { width: 20px; height: 20px; fill: currentColor; opacity: 0.8; }
+  .menu-item:hover svg, .menu-item.active svg { opacity: 1; }
+  
+  .content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    height: 100vh;
+  }
+
+  .board{
+    max-width:1450px;
+    margin:0 auto;
+    padding:14px 20px;
+  }
+
+  /* ===== HEADER ===== */
+  .header{
+    background:linear-gradient(135deg, var(--navy-deep), var(--navy-light));
+    border-radius:14px;
+    padding:18px 26px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    color:#fff;
+    box-shadow:0 6px 18px rgba(11,31,77,.25);
+  }
+  .header-left{display:flex; align-items:center; gap:16px;}
+  .header-left img{width:64px; height:64px;}
+  .header-left .titles h2{margin:0; font-size:15px; font-weight:700; letter-spacing:.5px;}
+  .header-left .titles p{margin:2px 0 0; font-size:11px; color:#c7d1ef;}
+
+  .header-mid{text-align:center; flex:1;}
+  .header-mid h1{
+    margin:0;
+    font-size:38px;
+    font-weight:800;
+    letter-spacing:2px;
+    text-shadow:0 2px 6px rgba(0,0,0,.3);
+  }
+  .header-mid .sub1{color:var(--gold); font-weight:700; font-size:15px; letter-spacing:2px; margin-top:2px;}
+  .header-mid .sub2{color:#dfe6fb; font-size:12px; margin-top:4px; line-height:1.5;}
+
+  .header-time{
+    background:#0e1c40;
+    border-radius:10px;
+    padding:10px 18px;
+    text-align:center;
+    min-width:170px;
+  }
+  .header-time .date{display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px; font-weight:600; color:#fff;}
+  .header-time .clock{font-size:26px; font-weight:800; color:var(--gold); margin-top:4px;}
+  .header-time .wib{font-size:11px; color:#c7d1ef;}
+
+  .header-right{display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .header-right img.berakhlak{width:150px;}
+  .header-right .tag{font-size:11px; font-weight:800; color:#fff; letter-spacing:.5px;}
+
+  /* ===== STAT STRIP ===== */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:12px;
+    margin-top:14px;
+  }
+  .stat{
+    border-radius:10px;
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:#fff;
+    box-shadow:0 4px 10px rgba(0,0,0,.08);
+  }
+  .stat .icon{
+    width:44px; height:44px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.18);
+    border-radius:8px;
+    flex-shrink:0;
+  }
+  .stat .icon svg{width:24px; height:24px;}
+  .stat .num{font-size:26px; font-weight:800; line-height:1;}
+  .stat .label{font-size:11px; opacity:.9; margin-top:2px;}
+  .stat .title{font-size:11px; font-weight:700; letter-spacing:.4px; opacity:.95;}
+
+  .stat.masuk{background:linear-gradient(135deg,#1c56c9,#2f7fe0);}
+  .stat.keluar{background:linear-gradient(135deg,#1746a3,#2557c9);}
+  .stat.disposisi{background:linear-gradient(135deg,#5b2ea6,#7a49c9);}
+  .stat.dokumen{background:linear-gradient(135deg,#0e8a5f,#1aa876);}
+  .stat.agenda{background:linear-gradient(135deg,#d97a12,#e6971f);}
+  .stat.tindak{background:linear-gradient(135deg,#0e8a8a,#1aacac);}
+
+  /* ===== MAIN GRID ===== */
+  .main{
+    display:grid;
+    grid-template-columns:1.1fr 1.5fr 1.5fr;
+    gap:14px;
+    margin-top:14px;
+    align-items:start;
+  }
+  .panel{
+    background:var(--card);
+    border-radius:12px;
+    box-shadow:0 4px 14px rgba(11,31,77,.08);
+    overflow:hidden;
+  }
+  .panel-head{
+    background:var(--navy);
+    color:#fff;
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:14px;
+    letter-spacing:.3px;
+  }
+  .panel-head svg{width:18px; height:18px;}
+  .panel-body{padding:10px 14px 14px;}
+
+  /* Agenda list */
+  .agenda-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:10px 4px;
+    border-bottom:1px dashed #e3e7f2;
+  }
+  .agenda-item:last-child{border-bottom:none;}
+  .agenda-time{font-weight:800; font-size:14px; width:48px; color:var(--navy);}
+  .agenda-icon{
+    width:34px; height:34px; border-radius:50%;
+    background:var(--blue);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .agenda-icon svg{width:18px; height:18px; fill:#fff;}
+  .agenda-text{flex:1;}
+  .agenda-text .t{font-weight:700; font-size:13px; color:var(--ink);}
+  .agenda-text .r{font-size:11px; color:var(--muted);}
+  .badge{
+    font-size:10px;
+    font-weight:800;
+    padding:4px 8px;
+    border-radius:20px;
+    white-space:nowrap;
+    color:#fff;
+  }
+  .badge.selesai{background:var(--ok);}
+  .badge.berlangsung{background:var(--proc);}
+  .badge.belum{background:var(--wait);}
+
+  /* Tindak lanjut table */
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{
+    text-align:left;
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.3px;
+    padding:6px 6px 10px;
+    border-bottom:2px solid #eef1f8;
+  }
+  tbody td{
+    padding:10px 6px;
+    border-bottom:1px solid #f0f2f8;
+    vertical-align:middle;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  .kegiatan-title{font-weight:700; color:var(--ink); font-size:12.5px;}
+  .status-pill{
+    font-size:10px; font-weight:800; padding:5px 9px; border-radius:20px; color:#fff; display:inline-block;
+  }
+
+  /* Dokumentasi */
+  .doc-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .doc-card{position:relative; border-radius:10px; overflow:hidden; aspect-ratio:16/10;}
+  .doc-card img{width:100%; height:100%; object-fit:cover; display:block;}
+  .doc-caption{
+    position:absolute; left:0; right:0; bottom:0;
+    background:linear-gradient(0deg, rgba(11,31,77,.9), rgba(11,31,77,0));
+    color:#fff; font-size:11.5px; font-weight:700;
+    padding:16px 10px 8px;
+  }
+
+  /* Footer */
+  .footer{
+    margin-top:14px;
+    background:linear-gradient(90deg, var(--navy-deep), var(--navy));
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    overflow:hidden;
+    color:#fff;
+  }
+  .footer img{width:220px; height:130px; object-fit:cover; flex-shrink:0;}
+  .footer-text{flex:1; padding:10px;}
+  .footer-text h3{margin:0 0 4px; font-size:14px;}
+  .footer-text p{margin:0; font-size:12px; color:#c7d1ef;}
+  .footer-values{display:flex; gap:22px; padding-right:24px; flex-shrink:0;}
+  .fv{display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11px; font-weight:600;}
+  .fv svg{width:22px; height:22px;}
+
+  @media (max-width:1100px){
+    .stats{grid-template-columns:repeat(3,1fr);}
+    .main{grid-template-columns:1fr;}
+    .header{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>MENU DASHTU</h2>
+    </div>
+    <ul class="menu-list">
+      <a href="#" class="menu-item active">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        Dashboard Utama
+      </a>
+      <a href="/api/surat" class="menu-item" target="_blank" title="Endpoint: /api/surat">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+        Surat Masuk & Keluar
+      </a>
+      <a href="/api/disposisi" class="menu-item" target="_blank" title="Endpoint: /api/disposisi">
+        <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm8 9-2 2-1-1-1.5 1.5L11.5 15 14 12.5 17.5 16 19 14.5z"/></svg>
+        Disposisi
+      </a>
+      <a href="/api/agenda" class="menu-item" target="_blank" title="Endpoint: /api/agenda & /api/kegiatan">
+        <svg viewBox="0 0 24 24"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm12 8H5v10h14V10z"/></svg>
+        Agenda & Kegiatan
+      </a>
+      <a href="/api/tindak_lanjut" class="menu-item" target="_blank" title="Endpoint: /api/tindak_lanjut">
+        <svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+        Tindak Lanjut
+      </a>
+      <a href="/api/laporan" class="menu-item" target="_blank" title="Endpoint: /api/laporan & /api/paparan">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        Laporan & Paparan
+      </a>
+      <a href="/api/arsip" class="menu-item" target="_blank" title="Endpoint: /api/arsip & /api/dokumentasi">
+        <svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V8h16v10z"/></svg>
+        Arsip & Dokumentasi
+      </a>
+    </ul>
+    
+    <div style="margin-top:auto; padding: 24px;">
+      <div style="font-size:11px; color:#5b6b8c; line-height:1.5;">
+        <strong>API Endpoint Mapper</strong><br>
+        v1.0 (Auto-Sync)
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <div class="content-wrapper">
+    <div class="board">
+
+  <!-- ================= HEADER ================= -->
+  <header class="header">
+    <div class="header-left">
+      <img src="assets/logo-kemendagri.png" alt="Logo Kementerian Dalam Negeri">
+      <div class="titles">
+        <h2>KEMENTERIAN DALAM NEGERI</h2>
+        <p>REPUBLIK INDONESIA</p>
+      </div>
+    </div>
+
+    <div class="header-mid">
+      <h1>DASHTU SUPD II</h1>
+      <div class="sub1">DASHBOARD TATA USAHA TERPADU</div>
+      <div class="sub2">
+        DIREKTORAT SINKRONISASI URUSAN PEMERINTAHAN DAERAH II<br>
+        DITJEN BINA PEMBANGUNAN DAERAH
+      </div>
+    </div>
+
+    <div class="header-time">
+      <div class="date">📅 <span id="tanggal">RABU, 15 JULI 2026</span></div>
+      <div class="clock" id="jam">09:35</div>
+      <div class="wib">WIB</div>
+    </div>
+
+    <div class="header-right">
+      <img class="berakhlak" src="assets/logo-berakhlak.png" alt="BerAKHLAK">
+      <div class="tag"># bangga melayani bangsa</div>
+    </div>
+  </header>
+
+  <!-- ================= STAT STRIP ================= -->
+  <section class="stats">
+    <div class="stat masuk">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="#fff"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg></div>
+      <div><div class="title">SURAT MASUK</div><div class="num">1.285</div><div class="label">Surat</div></div>
+    </div>
+    <div class="stat keluar">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg></div>
+      <div><div class="title">SURAT KELUAR</div><div class="num">1.102</div><div class="label">Surat</div></div>
+    </div>
+    <div class="stat disposisi">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="#fff"><path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm8 9-2 2-1-1-1.5 1.5L11.5 15 14 12.5 17.5 16 19 14.5z"/></svg></div>
+      <div><div class="title">DISPOSISI</div><div class="num">965</div><div class="label">Surat</div></div>
+    </div>
+    <div class="stat dokumen">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="#fff"><path d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z"/></svg></div>
+      <div><div class="title">DOKUMEN DIGITAL</div><div class="num">4.352</div><div class="label">Dokumen</div></div>
+    </div>
+    <div class="stat agenda">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm12 8H5v10h14V10z"/></svg></div>
+      <div><div class="title">AGENDA</div><div class="num">8</div><div class="label">Kegiatan</div></div>
+    </div>
+    <div class="stat tindak">
+      <div class="icon"><svg viewBox="0 0 24 24" fill="#fff"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></div>
+      <div><div class="title">TINDAK LANJUT</div><div class="num">95%</div><div class="label">Selesai</div></div>
+    </div>
+  </section>
+
+  <!-- ================= MAIN GRID ================= -->
+  <section class="main">
+
+    <!-- AGENDA HARI INI -->
+    <div class="panel">
+      <div class="panel-head"><svg viewBox="0 0 24 24" fill="#fff"><path d="M7 2v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2V2h-2v2H9V2H7zm12 8H5v10h14V10z"/></svg> AGENDA HARI INI</div>
+      <div class="panel-body" id="agenda-list"></div>
+    </div>
+
+    <!-- TINDAK LANJUT KEGIATAN -->
+    <div class="panel">
+      <div class="panel-head"><svg viewBox="0 0 24 24" fill="#fff"><path d="M19 3h-4.2A3 3 0 0 0 12 1a3 3 0 0 0-2.8 2H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM12 3a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg> TINDAK LANJUT KEGIATAN</div>
+      <div class="panel-body">
+        <table>
+          <thead>
+            <tr><th>KEGIATAN / ARAHAN</th><th>PIC</th><th>DEADLINE</th><th>STATUS</th></tr>
+          </thead>
+          <tbody id="tindak-list"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- DOKUMENTASI KEGIATAN -->
+    <div class="panel">
+      <div class="panel-head"><svg viewBox="0 0 24 24" fill="#fff"><path d="M9 2 7.2 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-3.2L15 2H9zm3 6a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></svg> DOKUMENTASI KEGIATAN</div>
+      <div class="panel-body">
+        <div class="doc-grid" id="doc-grid"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <img src="assets/gedung_kantor.png" alt="Gedung Kantor">
+    <div class="footer-text">
+      <h3>Direktorat Sinkronisasi Urusan Pemerintahan Daerah II</h3>
+      <p>Ditjen Bina Pembangunan Daerah &nbsp;–&nbsp; Kementerian Dalam Negeri</p>
+    </div>
+    <div class="footer-values">
+      <div class="fv"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 21s-7-4.4-9.4-8.8C.9 8.6 3 5 6.6 5c2 0 3.4 1 4.4 2.4C12 6 13.4 5 15.4 5 19 5 21.1 8.6 19.4 12.2 17 16.6 12 21 12 21z"/></svg>Melayani</div>
+      <div class="fv"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Profesional</div>
+      <div class="fv"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="8" cy="8" r="3"/><circle cx="16" cy="8" r="3"/><path d="M2 20c0-3 3-5 6-5s6 2 6 5"/><path d="M12 20c0-3 3-5 6-5"/></svg>Kolaboratif</div>
+      <div class="fv"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3 11c.6.4 1 1.2 1 2h4c0-.8.4-1.6 1-2a6 6 0 0 0-3-11z"/></svg>Inovatif</div>
+    </div>
+  </footer>
+
+    </div> <!-- end .board -->
+  </div> <!-- end .content-wrapper -->
+</div> <!-- end .app-container -->
+
+<script>
+  // ---- DATA (edit here to update the dashboard) ----
+  const agenda = [
+    {time:"08.30", title:"Rapat Internal Direktorat", room:"Ruang Rapat", status:"selesai"},
+    {time:"10.00", title:"Audiensi DPR RI", room:"Ruang Audiensi", status:"selesai"},
+    {time:"13.30", title:"Paparan Program Direktorat", room:"Ruang Rapat", status:"berlangsung"},
+    {time:"15.00", title:"Monitoring & Evaluasi Kegiatan", room:"Ruang Rapat", status:"belum"},
+    {time:"16.00", title:"Evaluasi Tindak Lanjut", room:"Ruang Rapat", status:"belum"},
+  ];
+
+  const tindakLanjut = [
+    {title:"Arahan Dirjen terkait Sinkronisasi Program PU", pic:"Subdit PU", deadline:"20 Jul 2026", status:"selesai"},
+    {title:"Tindak Lanjut Rapat Koordinasi Perumahan", pic:"Subdit PKP", deadline:"18 Jul 2026", status:"selesai"},
+    {title:"Arahan Direktur tentang Data Perhubungan", pic:"Subdit Perhubungan", deadline:"22 Jul 2026", status:"proses"},
+    {title:"Tindak Lanjut Hasil Rakor Kelautan & Perikanan", pic:"Subdit KP", deadline:"23 Jul 2026", status:"proses"},
+    {title:"Penyusunan Laporan Kinerja Triwulan II", pic:"Kasubbag TU", deadline:"25 Jul 2026", status:"proses"},
+    {title:"Pengumpulan Data Komunikasi & Informatika", pic:"Substansi KI", deadline:"21 Jul 2026", status:"belum"},
+  ];
+
+  const dokumentasi = [
+    {img:"assets/rapat_internal.png", caption:"Rapat Internal Direktorat"},
+    {img:"assets/audiensi_dpr.png", caption:"Audiensi DPR RI"},
+    {img:"assets/paparan_program.png", caption:"Paparan Program Direktorat"},
+    {img:"assets/monitoring_evaluasi.png", caption:"Monitoring & Evaluasi Kegiatan"},
+  ];
+
+  const badgeLabel = {selesai:"SELESAI", berlangsung:"BERLANGSUNG", belum:"BELUM DIMULAI", proses:"PROSES"};
+  const badgeClass = {selesai:"selesai", berlangsung:"berlangsung", belum:"belum", proses:"berlangsung"};
+
+  const agendaIcon = `<svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>`;
+
+  const agendaList = document.getElementById('agenda-list');
+  agenda.forEach(a => {
+    const div = document.createElement('div');
+    div.className = 'agenda-item';
+    div.innerHTML = `
+      <div class="agenda-time">${a.time}</div>
+      <div class="agenda-icon">${agendaIcon}</div>
+      <div class="agenda-text">
+        <div class="t">${a.title}</div>
+        <div class="r">${a.room}</div>
+      </div>
+      <div class="badge ${badgeClass[a.status]}">${badgeLabel[a.status]}</div>
+    `;
+    agendaList.appendChild(div);
+  });
+
+  const statusColor = {selesai:"var(--ok)", proses:"var(--proc)", belum:"var(--wait)"};
+  const tindakBody = document.getElementById('tindak-list');
+  tindakLanjut.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="kegiatan-title">${row.title}</td>
+      <td>${row.pic}</td>
+      <td>${row.deadline}</td>
+      <td><span class="status-pill" style="background:${statusColor[row.status]}">${badgeLabel[row.status]}</span></td>
+    `;
+    tindakBody.appendChild(tr);
+  });
+
+  const docGrid = document.getElementById('doc-grid');
+  dokumentasi.forEach(d => {
+    const div = document.createElement('div');
+    div.className = 'doc-card';
+    div.innerHTML = `<img src="${d.img}" alt="${d.caption}"><div class="doc-caption">${d.caption}</div>`;
+    docGrid.appendChild(div);
+  });
+
+  // ---- Live clock ----
+  function updateClock(){
+    const now = new Date();
+    const days = ["MINGGU","SENIN","SELASA","RABU","KAMIS","JUMAT","SABTU"];
+    const months = ["JANUARI","FEBRUARI","MARET","APRIL","MEI","JUNI","JULI","AGUSTUS","SEPTEMBER","OKTOBER","NOVEMBER","DESEMBER"];
+    document.getElementById('tanggal').textContent = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    document.getElementById('jam').textContent = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  }
+  updateClock();
+  setInterval(updateClock, 1000 * 10);
+</script>
+</body>
+</html>
