@@ -26,13 +26,13 @@ class AgendaUpdate(BaseModel):
     status_kehadiran: Optional[str] = None
     diwakilkan_kepada: Optional[str] = None
 
-@router.get("/")
+@router.get("")
 def get_agenda(conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     c.execute("SELECT * FROM agenda ORDER BY waktu_mulai ASC")
     return [dict(ix) for ix in c.fetchall()]
 
-@router.post("/")
+@router.post("")
 def create_agenda(req: AgendaCreate, conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     agenda_id = str(uuid.uuid4())

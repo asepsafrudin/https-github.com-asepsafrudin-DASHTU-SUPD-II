@@ -14,13 +14,13 @@ class RelasiPaparanCreate(BaseModel):
     entitas_tipe: str
     entitas_id: str
 
-@router.get("/")
+@router.get("")
 def get_paparan(conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     c.execute("SELECT * FROM bahan_paparan ORDER BY diunggah_pada DESC")
     return [dict(row) for row in c.fetchall()]
 
-@router.post("/")
+@router.post("")
 async def create_paparan(
     judul_paparan: str = Form(...),
     uploader: str = Form(...),

@@ -27,13 +27,13 @@ class KegiatanUpdate(BaseModel):
     deskripsi: Optional[str] = None
     status: Optional[str] = None
 
-@router.get("/")
+@router.get("")
 def get_kegiatan(conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     c.execute("SELECT * FROM kegiatan ORDER BY tanggal_mulai DESC")
     return [dict(row) for row in c.fetchall()]
 
-@router.post("/")
+@router.post("")
 def create_kegiatan(req: KegiatanCreate, conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     kegiatan_id = str(uuid.uuid4())

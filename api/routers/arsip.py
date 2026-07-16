@@ -9,13 +9,13 @@ from typing import Optional
 
 router = APIRouter(prefix="/api/arsip", tags=["Arsip"])
 
-@router.get("/")
+@router.get("")
 def get_arsip(conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     c.execute("SELECT * FROM arsip ORDER BY diunggah_pada DESC")
     return [dict(row) for row in c.fetchall()]
 
-@router.post("/")
+@router.post("")
 async def create_arsip(
     judul: str = Form(...),
     kategori: str = Form(...),

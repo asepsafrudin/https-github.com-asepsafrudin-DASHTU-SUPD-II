@@ -8,13 +8,13 @@ from typing import Optional
 
 router = APIRouter(prefix="/api/laporan", tags=["Laporan"])
 
-@router.get("/")
+@router.get("")
 def get_laporan(conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     c.execute("SELECT * FROM laporan ORDER BY tanggal_laporan DESC")
     return [dict(row) for row in c.fetchall()]
 
-@router.post("/")
+@router.post("")
 async def create_laporan(
     judul_laporan: str = Form(...),
     sumber: str = Form(...),

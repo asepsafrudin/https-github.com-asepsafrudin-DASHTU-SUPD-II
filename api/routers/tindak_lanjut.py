@@ -22,7 +22,7 @@ class TindakLanjutUpdate(BaseModel):
     prioritas: Optional[str] = None
     batas_waktu: Optional[str] = None
 
-@router.get("/")
+@router.get("")
 def get_tindak_lanjut(conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     c.execute('''
@@ -35,7 +35,7 @@ def get_tindak_lanjut(conn: sqlite3.Connection = Depends(get_db)):
     ''')
     return [dict(ix) for ix in c.fetchall()]
 
-@router.post("/")
+@router.post("")
 def create_tindak_lanjut(req: TindakLanjutCreate, conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     tl_id = str(uuid.uuid4())

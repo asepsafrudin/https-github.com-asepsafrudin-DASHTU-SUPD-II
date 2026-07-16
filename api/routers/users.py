@@ -32,14 +32,14 @@ def require_admin(x_user_role: str = Header(default="viewer")):
         raise HTTPException(status_code=403, detail="Akses ditolak: Hanya admin yang diizinkan")
     return x_user_role
 
-@router.get("/")
+@router.get("")
 def get_users(conn: sqlite3.Connection = Depends(get_db)):
     c = conn.cursor()
     c.execute("SELECT id, nama, email, role, nip, jabatan, unit_kerja, created_at FROM users ORDER BY created_at DESC")
     rows = c.fetchall()
     return [dict(row) for row in rows]
 
-@router.post("/")
+@router.post("")
 def create_user(req: UserCreate, conn: sqlite3.Connection = Depends(get_db), role: str = Depends(require_admin)):
     c = conn.cursor()
     # Check if email exists
