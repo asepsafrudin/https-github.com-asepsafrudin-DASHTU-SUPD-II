@@ -5,8 +5,9 @@ import uuid
 from datetime import datetime, date, timedelta
 from api.database import get_db
 import sqlite3
+from api.dependencies import get_current_user
 
-router = APIRouter(tags=["Surat"])
+router = APIRouter(tags=["Surat"], dependencies=[Depends(get_current_user)])
 
 class SuratCreate(BaseModel):
     no_surat: Optional[str] = None

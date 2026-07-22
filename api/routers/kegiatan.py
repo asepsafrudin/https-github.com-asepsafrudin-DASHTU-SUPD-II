@@ -4,8 +4,9 @@ from typing import Optional
 import uuid
 from api.database import get_db
 import sqlite3
+from api.dependencies import get_current_user
 
-router = APIRouter(prefix="/api/kegiatan", tags=["Kegiatan"])
+router = APIRouter(prefix="/api/kegiatan", tags=["Kegiatan"], dependencies=[Depends(get_current_user)])
 
 class KegiatanCreate(BaseModel):
     nama_kegiatan: str

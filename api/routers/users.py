@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends, Header
+from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 import uuid
 import bcrypt
-import hashlib
 from api.database import get_db
 import sqlite3
+from api.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
@@ -27,20 +27,20 @@ class UserUpdate(BaseModel):
     jabatan: Optional[str] = None
     unit_kerja: Optional[str] = None
 
-def require_admin(x_user_role: str = Header(default="viewer")):
-    if x_user_role != "admin":
+def require_admin(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Akses ditolak: Hanya admin yang diizinkan")
-    return x_user_role
+    return current_user
 
 @router.get("")
-def get_users(conn: sqlite3.Connection = Depends(get_db)):
+def get_users(conn: sqlite3.Connection = Depends(get_db), user: dict = Depends(require_admin)):
     c = conn.cursor()
     c.execute("SELECT id, nama, email, role, nip, jabatan, unit_kerja, created_at FROM users ORDER BY created_at DESC")
     rows = c.fetchall()
     return [dict(row) for row in rows]
 
 @router.post("")
-def create_user(req: UserCreate, conn: sqlite3.Connection = Depends(get_db), role: str = Depends(require_admin)):
+def create_user(req: UserCreate, conn: sqlite3.Connection = Depends(get_db), user: dict = Depends(require_admin)):
     c = conn.cursor()
     # Check if email exists
     c.execute("SELECT id FROM users WHERE email=?", (req.email,))
@@ -62,17 +62,19 @@ def create_user(req: UserCreate, conn: sqlite3.Connection = Depends(get_db), rol
     return {"message": "User berhasil dibuat", "id": user_id}
 
 @router.put("/{user_id}")
-def update_user(user_id: str, req: UserUpdate, conn: sqlite3.Connection = Depends(get_db), role: str = Depends(require_admin)):
+def update_user(user_id: str, req: UserUpdate, conn: sqlite3.Connection = Depends(get_db), user: dict = Depends(require_admin)):
     c = conn.cursor()
     fields = []
     values = []
+    
+    allowed_keys = {"nama", "email", "role", "nip", "jabatan", "unit_kerja"}
     
     for key, val in req.dict(exclude_unset=True).items():
         if key == "password" and val:
             fields.append("password_hash=?")
             pwd_hash = bcrypt.hashpw(val.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
             values.append(pwd_hash)
-        else:
+        elif key in allowed_keys:
             fields.append(f"{key}=?")
             values.append(val)
             
@@ -89,7 +91,7 @@ def update_user(user_id: str, req: UserUpdate, conn: sqlite3.Connection = Depend
     return {"message": "User berhasil diupdate"}
 
 @router.delete("/{user_id}")
-def delete_user(user_id: str, conn: sqlite3.Connection = Depends(get_db), role: str = Depends(require_admin)):
+def delete_user(user_id: str, conn: sqlite3.Connection = Depends(get_db), user: dict = Depends(require_admin)):
     c = conn.cursor()
     c.execute("DELETE FROM users WHERE id=?", (user_id,))
     conn.commit()

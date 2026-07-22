@@ -1,9 +1,10 @@
+from datetime import timedelta
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 import sqlite3
 import bcrypt
-import hashlib
 from api.database import get_db
+from api.dependencies import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(tags=["Authentication & Sync"])
 
@@ -15,7 +16,7 @@ def check_password(password, hashed):
     try:
         return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
     except ValueError:
-        return hashlib.sha256(password.encode()).hexdigest() == hashed
+        return False
 
 @router.post("/api/login")
 def login(req: LoginRequest, conn: sqlite3.Connection = Depends(get_db)):
@@ -26,7 +27,15 @@ def login(req: LoginRequest, conn: sqlite3.Connection = Depends(get_db)):
     if user_record:
         user_id, nama, role, pwd_hash = user_record
         if check_password(req.password, pwd_hash):
-            return {"user_id": user_id, "nama": nama, "role": role}
+            access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            access_token = create_access_token(
+                data={"sub": str(user_id), "role": role, "nama": nama}, expires_delta=access_token_expires
+            )
+            return {
+                "access_token": access_token, 
+                "token_type": "bearer",
+                "user": {"id": user_id, "nama": nama, "role": role}
+            }
             
     raise HTTPException(status_code=401, detail="Email atau password salah")
 
