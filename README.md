@@ -37,10 +37,14 @@ Prototipe aplikasi web interaktif untuk manajemen dokumen, kegiatan, laporan, da
    ```
 
 4. **Konfigurasi Environment**
-   Buat atau modifikasi file `.env` dan pastikan memuat kredensial Supabase (jika ingin fitur sinkronisasi):
+   Buat file `.env` dengan menyalin template dari `.env.example`. Pastikan untuk mengonfigurasi rahasia JWT untuk keamanan API:
    ```env
+   # JWT Configuration
+   JWT_SECRET_KEY="generate_secret_key_anda"
+   JWT_ALGORITHM="HS256"
+
+   # Supabase Sync (Opsional)
    SUPABASE_URL="..."
-   SUPABASE_SERVICE_ROLE_KEY="..."
    ```
 
 5. **Menjalankan Aplikasi**
